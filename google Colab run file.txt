@@ -1,0 +1,149 @@
+import pandas as pd
+
+# Load the dataset
+data = pd.read_csv('GlobalTemperatures.csv')  # Replace with your actual file path
+
+# Display basic info
+# print(data.info())
+
+# Display first few rows
+# print(data.head())
+# Convert 'Date' column to datetime
+data['dt'] = pd.to_datetime(data['dt'])
+
+# Verify the conversion
+# print(data.info())
+
+# Check for missing values
+# print(data.isnull().sum())
+
+# Fill or drop missing values if necessary
+data = data.dropna()
+
+# Extract year and month from the 'dt' column
+data['Year'] = data['dt'].dt.year
+data['Month'] = data['dt'].dt.month
+
+# Check the first few rows to verify
+print(data.head())
+
+import matplotlib.pyplot as plt
+
+# Plot global land average temperature over time
+plt.figure(figsize=(10,6))
+plt.plot(data['dt'], data['LandAverageTemperature'], label='Land Avg Temp')
+plt.fill_between(data['dt'],
+                 data['LandAverageTemperature'] - data['LandAverageTemperatureUncertainty'],
+                 data['LandAverageTemperature'] + data['LandAverageTemperatureUncertainty'],
+                 color='b', alpha=0.1, label='Uncertainty Range')
+
+plt.title('Global Land Average Temperature Over Time')
+plt.xlabel('Year')
+plt.ylabel('Temperature (°C)')
+plt.legend()
+plt.show()
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_squared_error
+
+# Select relevant features
+X = data[['Year', 'Month', 'LandMaxTemperature', 'LandMinTemperature']]
+y = data['LandAverageTemperature']
+
+# Train-test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Train a linear regression model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Evaluate the model
+mse = mean_squared_error(y_test, y_pred)
+print(f'Mean Squared Error: {mse}')
+
+# Visualize actual vs predicted temperatures
+plt.figure(figsize=(10,6))
+plt.scatter(X_test['Year'], y_test, color='blue', label='Actual Temperatures')
+plt.scatter(X_test['Year'], y_pred, color='red', label='Predicted Temperatures', alpha=0.6)
+plt.title('Actual vs Predicted Temperatures')
+plt.xlabel('Year')
+plt.ylabel('Temperature (°C)')
+plt.legend()
+plt.show()
+# Plot max vs min temperatures over time
+plt.figure(figsize=(10,6))
+plt.plot(data['dt'], data['LandMaxTemperature'], label='Max Temperature')
+plt.plot(data['dt'], data['LandMinTemperature'], label='Min Temperature', alpha=0.7)
+plt.fill_between(data['dt'],
+                 data['LandMaxTemperature'] - data['LandMaxTemperatureUncertainty'],
+                 data['LandMaxTemperature'] + data['LandMaxTemperatureUncertainty'],
+                 color='r', alpha=0.1)
+
+plt.fill_between(data['dt'],
+                 data['LandMinTemperature'] - data['LandMinTemperatureUncertainty'],
+                 data['LandMinTemperature'] + data['LandMinTemperatureUncertainty'],
+                 color='b', alpha=0.1)
+
+plt.title('Global Max vs Min Land Temperatures Over Time')
+plt.xlabel('Year')
+plt.ylabel('Temperature (°C)')
+plt.legend()
+plt.show()
+
+# Select relevant features and target
+X = data[['Year', 'Month', 'LandMaxTemperature', 'LandMinTemperature']]
+y = data['LandAverageTemperature']
+
+# Handle any missing values (drop or fill)
+X = X.dropna()
+y = y.loc[X.index]  # Align the target with non-missing data
+from sklearn.model_selection import train_test_split
+
+# Split the data into training and testing sets (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+from sklearn.linear_model import LinearRegression
+
+# Initialize the Linear Regression model
+model = LinearRegression()
+
+# Train the model
+model.fit(X_train, y_train)
+# Make predictions on the test set
+y_pred = model.predict(X_test)
+
+# Show the first few predicted values
+print(y_pred[:5])
+from sklearn.metrics import mean_squared_error
+
+# Calculate the Mean Squared Error
+mse = mean_squared_error(y_test, y_pred)
+print(f'Mean Squared Error: {mse}')
+import matplotlib.pyplot as plt
+
+# Plot actual vs predicted temperatures
+plt.figure(figsize=(10,6))
+plt.scatter(X_test['Year'], y_test, color='blue', label='Actual Temperatures')
+plt.scatter(X_test['Year'], y_pred, color='red', label='Predicted Temperatures', alpha=0.6)
+
+plt.title('Actual vs Predicted Land Average Temperatures')
+plt.xlabel('Year')
+plt.ylabel('Temperature (°C)')
+plt.legend()
+plt.show()
+# Create a DataFrame for future years (example: predicting for 2050)
+future_year = pd.DataFrame({
+    'Year': [2050] * 12,  # Predict for all months of the year 2050
+    'Month': list(range(1, 13)),  # Months from January to December
+    'LandMaxTemperature': [25] * 12,  # Example values, should be based on past trends or assumptions
+    'LandMinTemperature': [15] * 12  # Example values
+})
+
+# Predict the temperature for 2050
+future_temp_predictions = model.predict(future_year)
+
+# Display the predictions
+print(f"Predicted temperatures for 2050:\n{future_temp_predictions}")
+
