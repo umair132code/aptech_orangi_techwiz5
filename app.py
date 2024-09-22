@@ -6,7 +6,7 @@ from sklearn.linear_model import LinearRegression
 import calendar
 
 
-data = pd.read_csv('Data/GlobalTemperatures.csv')
+data = pd.read_csv('GlobalTemperatures.csv')
 data['dt'] = pd.to_datetime(data['dt'])
 data = data.dropna()
 
@@ -24,17 +24,17 @@ data['Month'] = data['dt'].dt.month
 X = data[['Year', 'Month', 'LandMaxTemperature', 'LandMinTemperature', 'LandAndOceanAverageTemperature']]
 y = data['LandAverageTemperature']
 
-# Train-test split
+# train data
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-# Train a linear regression model
+
 model = LinearRegression()
 model.fit(X_train, y_train)
 
-# Initialize the Dash app
+
 app = Dash(__name__)
 
-# Create the historical land and ocean temperature chart
+
 def create_historical_land_ocean_temp_chart():
     return dcc.Graph(
         id='historical-land-ocean-temp',
@@ -60,7 +60,7 @@ def create_historical_land_ocean_temp_chart():
         ]).update_layout(title='Historical Land and Ocean Average Temperatures Over Time')
     )
 
-# Create static charts
+
 def create_static_charts():
     # Chart 1: Global Land Average Temperature Over Time
     chart_1 = dcc.Graph(
@@ -87,7 +87,7 @@ def create_static_charts():
         ]).update_layout(title='Global Land Average Temperature Over Time')
     )
 
-    # Chart 2: Global Max vs Min Land Temperatures Over Time with Uncertainty
+    
     chart_2 = dcc.Graph(
         id='global-max-vs-min-temp',
         figure=go.Figure([
@@ -132,7 +132,6 @@ def create_static_charts():
         ]).update_layout(title='Global Max vs Min Land Temperatures Over Time with Uncertainty')
     )
 
-    # Chart 3: Predicted vs Actual Temperatures
     y_pred = model.predict(X_test)
     chart_3 = dcc.Graph(
         id='predicted-vs-actual-temp',
@@ -142,12 +141,11 @@ def create_static_charts():
         ]).update_layout(title='Actual vs Predicted Temperatures')
     )
 
-    # Chart 4: Historical Land and Ocean Temperatures
     chart_4 = create_historical_land_ocean_temp_chart()
 
     return html.Div([chart_1, chart_2, chart_3, chart_4])
 
-# Define the layout with the static charts and input field for dynamic charts
+
 app.layout = html.Div([
     html.H1("Planet Heat"),
     create_static_charts(),
@@ -173,20 +171,20 @@ def update_dynamic_charts(user_year):
         'LandAndOceanAverageTemperature': [20] * 12  # Example value, adjust as needed
     })
 
-    # Fill any potential NaN values
+ 
     future_year.fillna(0, inplace=True)
 
-    # Predict the temperatures for the user input year
+   
     future_temp_predictions = model.predict(future_year)
 
-    # Convert numeric month to month names
+  
     future_year['MonthName'] = future_year['Month'].apply(lambda x: calendar.month_name[x])
 
-    # Convert Celsius to Fahrenheit
+    
     future_year['PredictedTempC'] = future_temp_predictions
     future_year['PredictedTempF'] = future_temp_predictions * 9/5 + 32
 
-    # Create the charts based on the user input
+
 
     # Chart 1: Predicted Temperatures (18°C to 22°C)
     filtered_future_year = future_year[(future_year['PredictedTempC'] >= 18) & (future_year['PredictedTempC'] <= 22)]
@@ -197,7 +195,6 @@ def update_dynamic_charts(user_year):
         ]).update_layout(title=f'Predicted Temperatures for {user_year} (18°C to 22°C)')
     )
 
-    # Chart 2: All Predicted Temperatures for User Year
     chart_2 = dcc.Graph(
         id='all-predicted-temp',
         figure=go.Figure([
@@ -206,9 +203,8 @@ def update_dynamic_charts(user_year):
         ]).update_layout(title=f'All Predicted Temperatures for {user_year}')
     )
 
-    # Return the charts to be displayed
+    
     return html.Div([chart_1, chart_2])
 
-# Run the app on a local server
 if __name__ == '__main__':
     app.run_server(debug=True)
